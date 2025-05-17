@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{2351a0df-782c-4d74-85b7-0847d245d6b4}</ProjectGuid>
     <RootNamespace>epgui</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -91,8 +91,8 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)libs\libvalinet;$(SolutionDir)libs\funchook\include;$(SolutionDir)\ep_weather_host;$(SolutionDir)\ep_weather_host\$(Platform)\$(Configuration);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)libs\zydis\include;$(SolutionDir)libs\zydis\include;$(SolutionDir)libs\zydis\__CMake_build;$(SolutionDir)libs\zydis\src;$(SolutionDir)libs\zydis\dependencies\zycore\include;$(SolutionDir)libs\zydis\__CMake_build\zycore;$(SolutionDir)libs\zydis;$(SolutionDir)libs\libvalinet;$(SolutionDir)libs\funchook\include;$(SolutionDir)\ep_weather_host;$(SolutionDir)\ep_weather_host\$(Platform)\$(Configuration);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -110,7 +110,7 @@
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;WINRT_NO_SOURCE_LOCATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WINRT_NO_SOURCE_LOCATION;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -120,7 +120,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\funchook\build-x64\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\funchook\build-x64\$(Configuration)\;$(SolutionDir)libs\zydis\build-x64\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
@@ -136,7 +137,9 @@
     <ClCompile Include="..\ep_weather_host_stub\$(Platform)\$(Configuration)\ep_weather_host_i.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ep_dwm.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="llvm_56379_workaround.hpp" />
     <!--<ClInclude Include="GUI2.h" />-->
     <ClInclude Include="pch.h" />
     <ClInclude Include="resources\EPSettingsResources.h" />
@@ -154,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ep_dwm.cpp" />
     <ClCompile Include="GUI.c" />
     <!--<ClCompile Include="GUI2.cpp">
       <PrecompiledHeader>Use</PrecompiledHeader>

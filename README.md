@@ -1,42 +1,12 @@
-# ExplorerPatcher
+# Explorer Patcher R
 
-This project aims to enhance the working environment on Windows.
+本意是想通过[win11-toggle-rounded-corners](https://github.com/rich-ayr/win11-toggle-rounded-corners)项目修复Explorer Patcher失效的禁用圆角功能 后续开发中发现其依赖的ep_dwm项目和win11-toggle-rounded-corners其实都是通过注入任务管理器实现的, 持久化都是通过注册服务实现的. Explorer Patcher自身是没有直接在任务管理器重启后立刻注入的事件监听(可能是我没找到), 所以把win11-toggle-rounded-corners塞到Explorer Patcher的行为本身意义不大.  
 
-## How to?
+因此我把项目中原有的ep_dwm和相关的注册行为去掉了(顺便让那个圆角选项能动了), 额外安装win11-toggle-rounded-corners可以获得同样的效果.  
 
-1. Follow the antivirus configuration instructions and download the latest version of the setup program in [here](https://github.com/valinet/ExplorerPatcher/releases/latest).
-   * Choose `ep_setup.exe` if your device uses an Intel or AMD processor, or `ep_setup_arm64.exe` if your device uses a Snapdragon processor.
-1. Run the installer. It will automatically prompt for elevation, after which it will install the necessary files.
-1. When done, right click the taskbar and choose "Properties".
-1. To use the Windows 10 taskbar on Windows 11 versions 22H2, 23H2, and 24H2, go to the "Taskbar" section and change the Taskbar style to Windows 10 (ExplorerPatcher).
-1. To use the Windows 10 Start menu, go to the "Start menu" section and change the Start menu style to Windows 10.
-1. To use the Windows 10 Alt+Tab, go to the "Window switcher" section and change the "Window switcher (Alt+tab) style" to Windows 10.
-1. Feel free to check other configuration options.
+顺便一提, win11-toggle-rounded-corners是用cpp写的, 直接依赖zydis而且是meson项目, 多字符集. Explorer patcher是拿大量用c而且是Unicode字符集, 移植的难度有点大(怒).  
 
-That's it!
-
-**Note:** Some features may be unavailable on some Windows versions.
-
-## Uninstalling
-
-* Right click the taskbar then click "Properties" or search for "ExplorerPatcher", and go to "Uninstall" section or
-* Use "Programs and Features" in Control Panel, or "Apps and features" in the Settings app or
-* Run `ep_setup.exe /uninstall` or
-* Rename `ep_setup.exe` to `ep_uninstall.exe` and run that.
-
-## Updating
-
-* The program features built-in updates: go to "Properties" - "Updates" to configure, check for and install the latest updates. Learn more [here](https://github.com/valinet/ExplorerPatcher/wiki/Configure-updates).
-* Download the latest version's [setup file for x64](https://github.com/valinet/ExplorerPatcher/releases/latest/download/ep_setup.exe) or [setup file for ARM64](https://github.com/valinet/ExplorerPatcher/releases/latest/download/ep_setup_arm64.exe) and simply run it.
-
-## Donate
-
-If you find this project essential to your daily life, please consider donating to support the development through the [Sponsor](https://github.com/valinet/ExplorerPatcher?sponsor) button at the top of this page, so that we can continue to keep supporting newer Windows builds.
-
-## Discord Server
-
-Join our Discord server if you need support, want to chat regarding this project, or just want to hang out with us!
-
-[![Join on Discord](https://discordapp.com/api/guilds/1155912047897350204/widget.png?style=shield)](https://discord.gg/gsPcfqHTD2)
-
-[Read more](https://github.com/valinet/ExplorerPatcher/wiki)
+# 一些编译的注意事项
+zydis的头文件原始文件和构建之后输出文件是不一样的, 可能会有缺少符号定义的情况在  
+funchook和zlib需要自己动手编译  
+funchook默认/MTd 需要把ExplorerPatcher也改成/MTd进行编译 不然会有库冲突  

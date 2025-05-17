@@ -491,7 +491,23 @@ LSTATUS GUI_Internal_RegSetValueExW(
     }
     else if (!wcscmp(lpValueName, L"Virtualized_" _T(EP_CLSID) L"_DisableRoundedCorners"))
     {
-        return RegisterDWMService(*(DWORD*)lpData, 0);
+        if (false) {
+            return RegisterDWMService(*(DWORD*)lpData, 0);
+        }
+        // 这里是控制圆角是否开启的部分逻辑部分 返回值对应勾和差 可以看到这个东西是通过和DWM服务通信实现的 参数为lpData
+        // 这里从注册表拿值进行注入操作
+        DWORD data = 0;
+        DWORD data_size = sizeof(data);
+        RegGetValueW(HKEY_CURRENT_USER, L"SOFTWARE\\ExplorerPatcher", L"isDisableRoundCorners", RRF_RT_DWORD, NULL, &data, &data_size);
+        if (data == 1) {
+            data = 0;
+            return RegSetKeyValueW(HKEY_CURRENT_USER, _T(REGPATH), L"isDisableRoundCorners", REG_DWORD, &data, data_size);;
+        }
+        else {
+            data = 1;
+            return RegSetKeyValueW(HKEY_CURRENT_USER, _T(REGPATH), L"isDisableRoundCorners", REG_DWORD, &data, data_size);;
+        }
+        // return RegisterDWMService(*(DWORD*)lpData, 0);
     }
     else if (!wcscmp(lpValueName, L"Virtualized_" _T(EP_CLSID) L"_FileExplorerCommandUI"))
     {
@@ -730,7 +746,21 @@ LSTATUS GUI_Internal_RegQueryValueExW(
     }
     else if (!wcscmp(lpValueName, L"Virtualized_" _T(EP_CLSID) L"_DisableRoundedCorners"))
     {
-        HANDLE h_exists = CreateEventW(NULL, FALSE, FALSE, _T(EP_DWM_EVENTNAME));
+
+        // 显然正常情况下是用注册表进行存储的 这里是负责渲染用的
+        // 用注册表
+        if (true) {
+            // 通过键值进行渲染
+            return RegGetValueW(HKEY_CURRENT_USER, L"SOFTWARE\\ExplorerPatcher", L"isDisableRoundCorners", RRF_RT_DWORD, NULL, lpData, lpcbData);
+        }
+        
+
+        // 创建一个EP_DWM的事件对象 很显然这里这个逻辑就是 当_DisableRoundedCorners时 调用ep_dwm服务进行操作
+        // 进入其它页时会进行两次Invoke 安装完成后会Invoke 勾选后会两次invoke 勾选别的东西也会Invoke 这里应该不是复选框触发
+
+        HANDLE h_exists = CreateEventW(NULL, FALSE, FALSE, _T(EP_DWM_EVENTNAME)); // 这里额外进行对服务的判定 算是Pre 这个判定是多次的
+        //lpData给上层控件交互向RegisterDWM传参数 但是现在不需要了
+        // 我觉得这个lpData地址的0 1 值是用来给ep_dwm进行判断是否修改的 是这样
         if (h_exists)
         {
             if (GetLastError() == ERROR_ALREADY_EXISTS)

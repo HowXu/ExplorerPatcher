@@ -615,6 +615,10 @@ void ToggleTaskbarAutohide()
 
 LSTATUS RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride)
 {
+    // 直接杀掉不进行DWM注册
+    if (true) {
+        return FALSE;
+    }
     WCHAR wszPath[MAX_PATH];
     GetSystemDirectoryW(wszPath, MAX_PATH);
     wcscat_s(wszPath, MAX_PATH, L"\\cmd.exe");

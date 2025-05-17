@@ -19,3 +19,6 @@
 [submodule "ExplorerPatcher-L10N"]
 	path = ExplorerPatcher-L10N
 	url = https://github.com/valinet/ExplorerPatcher-L10N
+[submodule "zydis"]
+	path = libs/zydis
+	url = https://github.com/zyantific/zydis

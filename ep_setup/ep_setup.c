@@ -1151,7 +1151,24 @@ int WINAPI wWinMain(
 
         Sleep(500);
 
+        // 默认圆角是关闭的
         BOOL bAreRoundedCornersDisabled = FALSE;
+        // 初始化应该是下面的对服务的控制 这里我们改成用注册表
+        DWORD should_disable = 0; // 默认为False
+        // 写入键值
+        RegSetKeyValueW(HKEY_CURRENT_USER, _T(REGPATH), L"isDisableRoundCorners", REG_DWORD, &should_disable, sizeof(should_disable));
+        /*
+         lResult = RegSetValueEx(
+            hk,                  // 键句柄
+            L"isDisableRoundCorners",           // 键值名称
+            0,                     // 保留，必须为0
+            REG_DWORD,             // 数据类型（DWORD）
+            (BYTE*)&should_disable,        // 数据指针
+            sizeof(should_disable)         // 数据大小
+        );
+        */
+
+        // 查询事件对象是否已经存在
         HANDLE h_exists = CreateEventW(NULL, FALSE, FALSE, L"Global\\ep_dwm_" _T(EP_CLSID));
         if (h_exists)
         {
@@ -1176,32 +1193,41 @@ int WINAPI wWinMain(
                 bAreRoundedCornersDisabled = FALSE;
             }
         }
+        // 注册事件 在setup的时候进行注册的
         if (bAreRoundedCornersDisabled)
         {
+            // 下面直接return了 不用管
             RegisterDWMService(0, 1);
             RegisterDWMService(0, 3);
         }
 
-        WCHAR wszSCPath[MAX_PATH];
-        GetSystemDirectoryW(wszSCPath, MAX_PATH);
-        wcscat_s(wszSCPath, MAX_PATH, L"\\sc.exe");
-        SHELLEXECUTEINFO ShExecInfo = { 0 };
-        ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-        ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-        ShExecInfo.hwnd = NULL;
-        ShExecInfo.lpVerb = L"runas";
-        ShExecInfo.lpFile = wszSCPath;
-        ShExecInfo.lpParameters = L"stop " _T(EP_DWM_SERVICENAME);
-        ShExecInfo.lpDirectory = NULL;
-        ShExecInfo.nShow = SW_HIDE;
-        ShExecInfo.hInstApp = NULL;
-        if (ShellExecuteExW(&ShExecInfo) && ShExecInfo.hProcess)
-        {
-            WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-            DWORD dwExitCode = 0;
-            GetExitCodeProcess(ShExecInfo.hProcess, &dwExitCode);
-            CloseHandle(ShExecInfo.hProcess);
-        }
+        
+            WCHAR wszSCPath[MAX_PATH];
+            GetSystemDirectoryW(wszSCPath, MAX_PATH);
+            wcscat_s(wszSCPath, MAX_PATH, L"\\sc.exe");
+            SHELLEXECUTEINFO ShExecInfo = { 0 };
+            ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+            ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+            ShExecInfo.hwnd = NULL;
+            ShExecInfo.lpVerb = L"runas";
+            ShExecInfo.lpFile = wszSCPath;
+            ShExecInfo.lpParameters = L"stop " _T(EP_DWM_SERVICENAME);
+            ShExecInfo.lpDirectory = NULL;
+            ShExecInfo.nShow = SW_HIDE;
+            ShExecInfo.hInstApp = NULL;
+            // 这里是用命令行形式启动服务
+            /*
+            * 这里的服务注册也不要了
+            {
+                if (ShellExecuteExW(&ShExecInfo) && ShExecInfo.hProcess)
+                {
+                    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+                    DWORD dwExitCode = 0;
+                    GetExitCodeProcess(ShExecInfo.hProcess, &dwExitCode);
+                    CloseHandle(ShExecInfo.hProcess);
+                }
+            }
+        */
 
         HWND hWnd = FindWindowW(L"ExplorerPatcher_GUI_" _T(EP_CLSID), NULL);
         if (hWnd)
@@ -1327,7 +1353,8 @@ int WINAPI wWinMain(
         if (CHECK_OK(bOk)) bOk = InstallResource(bInstall, hInstance, zipFile, PRODUCT_NAME ".arm64.dll", wszPath, _T(PRODUCT_NAME) L".arm64.dll");
 #endif
         if (CHECK_OK(bOk)) bOk = InstallResource(bInstall, hInstance, zipFile, "ep_gui.dll", wszPath, L"ep_gui.dll");
-        if (CHECK_OK(bOk)) bOk = InstallResource(bInstall, hInstance, zipFile, "ep_dwm.exe", wszPath, L"ep_dwm.exe");
+        // 这里是文件解压释放 这里不需要了
+        // if (CHECK_OK(bOk)) bOk = InstallResource(bInstall, hInstance, zipFile, "ep_dwm.exe", wszPath, L"ep_dwm.exe");
         if (bInstall)
         {
             if (CHECK_OK(bOk)) bOk = InstallResource(bInstall, hInstance, zipFile, "ep_weather_host.dll", wszPath, L"ep_weather_host.dll");
@@ -1531,14 +1558,18 @@ int WINAPI wWinMain(
             wcscat_s(wszPath, MAX_PATH, _T(APP_RELATIVE_PATH) L"\\" _T(SETUP_UTILITY_NAME) L"\" /uninstall");
             bOk = SetupUninstallEntry(bInstall, wszPath);
         }
-        ShExecInfo.lpParameters = bInstall ? L"start " _T(EP_DWM_SERVICENAME) : L"delete " _T(EP_DWM_SERVICENAME);
-        if (ShellExecuteExW(&ShExecInfo) && ShExecInfo.hProcess)
+        /* 这个也没用了
         {
-            WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-            DWORD dwExitCode = 0;
-            GetExitCodeProcess(ShExecInfo.hProcess, &dwExitCode);
-            CloseHandle(ShExecInfo.hProcess);
+            ShExecInfo.lpParameters = bInstall ? L"start " _T(EP_DWM_SERVICENAME) : L"delete " _T(EP_DWM_SERVICENAME);
+            if (ShellExecuteExW(&ShExecInfo) && ShExecInfo.hProcess)
+            {
+                WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+                DWORD dwExitCode = 0;
+                GetExitCodeProcess(ShExecInfo.hProcess, &dwExitCode);
+                CloseHandle(ShExecInfo.hProcess);
+            }
         }
+        */
         if (CHECK_OK(bOk))
         {
             WCHAR wszArgs[MAX_PATH];
